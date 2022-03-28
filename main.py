@@ -1,11 +1,32 @@
-import sys
+import sqlite3
 
-for string in sys.stdin:
-    while "AAAAA" in string:
-        index_y = string.find("YYY")
-        if index_y >= 0:
-            string = string[:index_y] + "A" + string[index_y + 3:]
-        index_a = string.find("AAA")
-        if index_a >= 0:
-            string = string[:index_a] + "Y" + string[index_a + 3:]
-    print(string)
+name_bd = input()
+min_size = int(input())
+max_rate = int(input())
+
+
+# Подключение к БД
+con = sqlite3.connect(name_bd)
+
+# Создание курсора
+cur = con.cursor()
+
+# Выполнение запроса и получение всех результатов
+quare = f"""SELECT streelers.size
+            FROM streelers
+            WHERE size >= {min_size} and rate <= {max_rate}"""
+
+result = cur.execute(quare).fetchall()
+
+ans = []
+for el in result:
+    query = "select name from colors where id == ?"
+    start_color = cur.execute(query, (el[1], )).fetchone()[0]
+    end_color = cur.execute(query, (el[2], )).fetchone()[0]
+    ans.append((start_color, end_color, el[0]))
+
+con.close()
+ans.sort(key=lambda x: (x[2], x[0], x[1]))
+
+for i in ans:
+    print(*i)
